@@ -1,11 +1,21 @@
-FROM ubuntu
+FROM node:19.6-alpine
 
-RUN apt update && apt install nodejs npm -y
+WORKDIR /usr/src/app
 
-COPY . .
+ENV NODE_ENV production
 
-RUN npm install
+COPY package*.json ./
 
-CMD ["npm", "run", "dev" ]
+RUN --mount=type=cache,target=/usr/src/app/.npm \
+    npm set cache /usr/src/app/.npm && \
+    npm ci --only=production
 
+USER node
 
+COPY --chown=node:node ./src .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
+
+# sudo DOCKER_BUILDKIT=1 docker build -t apinode:3 .
